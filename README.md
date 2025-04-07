@@ -23,11 +23,23 @@ GET /stock-info?ticker=AAPL&horizon=7&includeNews=true&includeXAI=true
 
 ```
 myproject/
- ┗ main.py           # FastAPI main source
+├── app/
+│   ├── main.py            # FastAPI entrypoint (app 객체, 라우터 등록)
+│   ├── routers/
+│   │   └── stock.py       # /stock-info 라우터 정의
+│   ├── database.py        # MongoDB 연결 (pymongo)
+│   ├── crud.py            # 예측/뉴스/DB 관련 로직 모음 (선택)
+│   ├── schemas.py         # Pydantic 데이터 모델 (Request/Response)
+│   └── __init__.py
+├── requirements.txt       # Python 패키지 목록
+└── Dockerfile             # Docker 빌드 설정
 ```
-TBD
 
-- **main.py**: Core FastAPI application
+- app/main.py: FastAPI 애플리케이션을 생성하고, 라우터들을 등록합니다.
+- app/routers/stock.py: `/stock-info` 라우트를 정의합니다.
+- app/database.py: MongoDB에 연결하는 클라이언트를 설정합니다. pymongo 기반입니다.
+- app/crud.py: 예측, 뉴스, 해석 결과를 MongoDB에서 가져오거나 가공하는 로직이 들어갑니다. (현재 Mock data 사용)
+- app/schemas.py: 요청 및 응답의 데이터 구조를 정의합니다 (Pydantic 사용).
 
 
 ## 3. Setup & Run (Local)
@@ -49,7 +61,7 @@ pip install -r requirements.txt
 ### 3.3. Run FastAPI with Uvicorn
 
 ```bash
-uvicorn main:app --host 0.0.0.0 --port 8000
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
 - The server should be available at http://localhost:8000
