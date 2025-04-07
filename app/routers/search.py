@@ -6,12 +6,12 @@ router = APIRouter()
 
 # GET /search?t=XXX
 @router.get("/search")
-def search_tickers(t: str = Query(..., description="검색 키워드")):
+def search_tickers(keyword: str = Query(..., description="검색 키워드")):
     """
     종목 코드(ticker) 또는 회사 이름(name)으로 자동완성 검색
-    - Query param: t
+    - Query param: keyword
     """
-    regex = {"$regex": t, "$options": "i"}
+    regex = {"$regex": keyword, "$options": "i"}
     results = db["tickers"].find(
         { "$or": [ { "ticker": regex }, { "name": regex } ] },
         { "_id": 0 }
