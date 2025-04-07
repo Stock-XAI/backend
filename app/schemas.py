@@ -1,33 +1,34 @@
-# app/schemas.py
-from pydantic import BaseModel, Field
-from typing import Optional
-from bson import ObjectId
+from pydantic import BaseModel
+from typing import List, Optional
 
-# PyMongo에서 _id는 ObjectId를 사용하므로, 다음과 같은 별도 헬퍼가 필요할 수도 있음
-class PyObjectId(ObjectId):
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+class ChartDataItem(BaseModel):
+    date: str
+    open: float
+    close: float
 
-# MongoDB 문서용 기본 스키마
-class StockBase(BaseModel):
-    ticker: str = Field(...)
-    name: str = Field(...)
-    price: float = Field(...)
+class NewsItem(BaseModel):
+    title: str
+    summary: str
+    sentiment: str
 
-class StockCreate(StockBase):
-    pass
+class PredictionData(BaseModel):
+    horizon: int
+    result: str
+    confidenceScore: float
 
-class StockUpdate(BaseModel):
-    name: Optional[str]
-    price: Optional[float]
+class ExplanationData(BaseModel):
+    why: str
+    shapValues: List[float]
+    features: List[str]
 
-class StockOut(StockBase):
-    # MongoDB _id 필드를 표시하고 싶다면
-    id: Optional[str] = Field(alias="_id")
+class StockInfoResponse(BaseModel):
+    ticker: str
+    chartData: List[ChartDataItem]
+    news: List[NewsItem]
+    prediction: PredictionData
+    explanation: Optional[ExplanationData]
 
-    class Config:
-        # _id를 str로 serialize하기 위한 설정
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+class StockInfoWrapper(BaseModel):
+    success: bool
+    message: str
+    data: StockInfoResponse

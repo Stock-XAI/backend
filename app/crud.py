@@ -1,23 +1,41 @@
 # app/crud.py
-from pymongo.collection import Collection
-from .schemas import StockCreate, StockUpdate
-from bson.objectid import ObjectId
-from typing import Optional
 
-def create_stock(collection: Collection, stock_in: StockCreate):
-    doc = stock_in.dict()
-    result = collection.insert_one(doc)
-    return str(result.inserted_id)
+from typing import List, Dict
 
-def get_stock(collection: Collection, ticker: str):
-    doc = collection.find_one({"ticker": ticker})
-    return doc
+# 주가 데이터 조회 (mock)
+def get_chart_data(ticker: str) -> List[Dict]:
+    return [
+        {"date": "2025-04-01", "open": 170.2, "close": 172.5},
+        {"date": "2025-04-02", "open": 172.5, "close": 173.1},
+    ]
 
-def update_stock(collection: Collection, ticker: str, stock_in: StockUpdate):
-    update_data = {k: v for k, v in stock_in.dict(exclude_unset=True).items() if v is not None}
-    result = collection.update_one({"ticker": ticker}, {"$set": update_data})
-    return result.modified_count
+# 뉴스 요약 데이터 (mock or 실제 RAG 대체 가능)
+def get_recent_news(ticker: str) -> List[Dict]:
+    return [
+        {
+            "title": f"{ticker} releases new product",
+            "summary": "애플이 새로운 제품을 출시했습니다.",
+            "sentiment": "positive"
+        },
+        {
+            "title": f"{ticker} faces supply chain issue",
+            "summary": "공급망 이슈로 인한 주가 변동 가능성 언급.",
+            "sentiment": "negative"
+        }
+    ]
 
-def delete_stock(collection: Collection, ticker: str):
-    result = collection.delete_one({"ticker": ticker})
-    return result.deleted_count
+# 예측 결과 생성 (향후 모델 연동)
+def run_prediction(ticker: str, horizon: int) -> Dict:
+    return {
+        "horizon": horizon,
+        "result": "Rise",  # or "Fall"
+        "confidenceScore": 0.86
+    }
+
+# XAI 해석 결과 (SHAP, LIME 등 연동 예정)
+def generate_explanation(ticker: str, horizon: int) -> Dict:
+    return {
+        "why": "주가 상승 요인은 거래량 증가 및 단기 이동평균 우위",
+        "shapValues": [0.12, -0.07],
+        "features": ["MA_5", "Volume"]
+    }

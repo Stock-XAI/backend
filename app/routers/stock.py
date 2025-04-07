@@ -1,12 +1,12 @@
 # app/routers/stock.py
 from fastapi import APIRouter, Query, HTTPException
-from typing import Optional
-from .. import schemas
+from ..crud import *
+from ..schemas import StockInfoResponse, StockInfoWrapper
 
 router = APIRouter()
 
 # GET /stock-info
-@router.get("/stock-info")
+@router.get("/stock-info", response_model=StockInfoWrapper)
 def get_stock_info(
     ticker: str = Query(..., description="종목 코드 (예: AAPL)"),
     horizon: int = Query(7, description="예측 기간 (1, 7, 30일 등)"),
@@ -26,44 +26,26 @@ def get_stock_info(
     if ticker not in valid_tickers:
         raise HTTPException(status_code=404, detail="해당 티커 정보를 찾을 수 없습니다.")
 
-    # 모의 차트 데이터
-    chart_data = [
-        {"date": "2025-04-01", "open": 170.2, "close": 172.5},
-        {"date": "2025-04-02", "open": 172.5, "close": 173.1},
-    ]
+    # 차트 데이터 (Mock)
+    chart_data = get_chart_data(ticker)
 
-    # 모의 뉴스 데이터
-    news_data = []
-    if includeNews:
-        news_data = [
-            {"title": f"{ticker} releases new product", "summary": "주요 기사 요약...", "sentiment": "positive"},
-            {"title": f"{ticker} faces supply chain issue", "summary": "또 다른 기사 요약...", "sentiment": "negative"}
-        ]
+    # 뉴스 데이터 (Mock)
+    news_data = get_recent_news(ticker) if includeNews else []
 
     # 예측 결과 (Mock)
-    prediction = {
-        "horizon": horizon,
-        "result": "Rise",
-        "confidenceScore": 0.86
-    }
+    prediction = run_prediction(ticker, horizon)
 
     # 예측 해석 (Mock)
-    explanation = {}
-    if includeXAI:
-        explanation = {
-            "why": "주가 상승 요인은 거래량 증가 및 단기 이동평균 우위",
-            "shapValues": [0.12, -0.07],
-            "features": ["MA_5", "Volume"]
-        }
+    explanation = generate_explanation(ticker, horizon) if includeXAI else {}
 
-    return {
-        "success": True,
-        "message": "Stock info fetched",
-        "data": {
-            "ticker": ticker,
-            "chartData": chart_data,
-            "news": news_data,
-            "prediction": prediction,
-            "explanation": explanation
-        }
-    }
+    return StockInfoWrapper(
+        success=True,
+        message="Stock info fetched",
+        data=StockInfoResponse(
+            ticker=ticker,
+            chartData=chart_data,
+            news=news_data,
+            prediction=prediction,
+            explanation=explanation
+        )
+    )
