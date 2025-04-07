@@ -2,7 +2,6 @@
 # Build: docker build -t stockinfo:latest .
 # Run: docker run -d -p 8000:8000 --name stockinfo-app stockinfo:latest
 
-
 # 1. 베이스 이미지 선택
 FROM python:3.12-slim
 
