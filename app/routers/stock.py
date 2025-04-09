@@ -26,7 +26,7 @@ def get_stock_info(
     if not db["tickers"].find_one({"ticker": ticker}):
         raise HTTPException(status_code=404, detail="해당 티커 정보를 찾을 수 없습니다.")
     
-    # 차트 데이터 (Mock)
+    # 차트 데이터
     chart_data = get_chart_data(ticker)
 
     # 뉴스 데이터 (Mock)
