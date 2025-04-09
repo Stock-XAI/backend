@@ -5,6 +5,8 @@ class ChartDataItem(BaseModel):
     date: str
     open: float
     close: float
+    high: float
+    low: float
 
 class NewsItem(BaseModel):
     title: str

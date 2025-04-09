@@ -1,6 +1,7 @@
 # app/routers/stock.py
 from fastapi import APIRouter, Query, HTTPException
 from ..crud import *
+from ..database import db
 from ..schemas import StockInfoResponse, StockInfoWrapper
 
 router = APIRouter()
@@ -21,12 +22,11 @@ def get_stock_info(
     - includeXAI: 예측 결과 해석 포함 여부
     """
 
-    # 유효한 티커인지 확인 (Mock)
-    valid_tickers = ["AAPL", "MSFT", "GOOG"]
-    if ticker not in valid_tickers:
+    # 유효한 티커인지 MongoDB에서 확인
+    if not db["tickers"].find_one({"ticker": ticker}):
         raise HTTPException(status_code=404, detail="해당 티커 정보를 찾을 수 없습니다.")
-
-    # 차트 데이터 (Mock)
+    
+    # 차트 데이터
     chart_data = get_chart_data(ticker)
 
     # 뉴스 데이터 (Mock)

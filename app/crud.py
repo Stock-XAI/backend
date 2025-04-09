@@ -1,13 +1,28 @@
 # app/crud.py
-
 from typing import List, Dict
+import yfinance as yf
 
 # 주가 데이터 조회 (mock)
 def get_chart_data(ticker: str) -> List[Dict]:
-    return [
-        {"date": "2025-04-01", "open": 170.2, "close": 172.5},
-        {"date": "2025-04-02", "open": 172.5, "close": 173.1},
-    ]
+    ticker_data = yf.Ticker(ticker)
+    data = ticker_data.history(period="1mo")
+    if not data.empty:
+        # 소수점 2자리로 반올림
+        data = data.round(2)
+        chart_data = [
+            {
+                "date": str(date.date()),
+                "open": row["Open"],
+                "close": row["Close"],
+                "high": row["High"],
+                "low": row["Low"],
+                # "volume": row["Volume"],
+            }
+            for date, row in data.iterrows()
+        ]
+        return chart_data
+    else:
+        return []
 
 # 뉴스 요약 데이터 (mock or 실제 RAG 대체 가능)
 def get_recent_news(ticker: str) -> List[Dict]:
