@@ -18,7 +18,7 @@ This project provides a simple FastAPI-based backend to fetch stock-related info
 3. GET /search
   - Autocomplete for stock tickers and company names
   - Query parameters:
-    - keyword (required): partial string for matching ticker or name
+    - keyword (optional): partial string for matching ticker or name
   ```http
   GET /search?keyword=apple
   ```
