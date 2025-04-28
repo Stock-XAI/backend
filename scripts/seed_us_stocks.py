@@ -13,7 +13,7 @@ if not db_password:
 
 MONGO_URI = f"mongodb+srv://skkucapstone:{db_password}@stock.iz5b97b.mongodb.net/?retryWrites=true&w=majority"
 client = MongoClient(MONGO_URI)
-collection = client["db"]["tickers"]
+collection = client["db"]["tickers_us"]
 
 def fix_ticker_format(ticker: str) -> str:
     return ticker.replace(".", "-")
