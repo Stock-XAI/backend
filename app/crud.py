@@ -1,9 +1,18 @@
 # app/crud.py
 from typing import List, Dict
 import yfinance as yf
+import FinanceDataReader as fdr
+from datetime import datetime, timedelta
 
-# 주가 데이터 조회 (mock)
-def get_chart_data(ticker: str) -> List[Dict]:
+# 주가 데이터 조회
+def get_chart_data(ticker: str, market: str = "US") -> List[Dict]:
+    if market == "KOSPI":
+        return get_kospi_chart_data(ticker)
+    else:
+        return get_us_chart_data(ticker)
+    
+# 미국 주식이면 yfinance로 가져오기
+def get_us_chart_data(ticker: str) -> List[Dict]:
     ticker_data = yf.Ticker(ticker)
     data = ticker_data.history(period="1mo")
     if not data.empty:
@@ -22,6 +31,28 @@ def get_chart_data(ticker: str) -> List[Dict]:
         ]
         return chart_data
     else:
+        return []
+    
+# 한국 주식이면 FDR로 가져오기
+def get_kospi_chart_data(ticker: str) -> List[Dict]:
+    try:
+        today = datetime.today()
+        one_month_ago = today - timedelta(days=30)
+        
+        df = fdr.DataReader(ticker, start=one_month_ago.strftime("%Y-%m-%d"))
+        df = df.round(2)
+        
+        return [
+            {
+                "date": str(date.date()),
+                "open": row["Open"],
+                "close": row["Close"],
+                "high": row["High"],
+                "low": row["Low"],
+            }
+            for date, row in df.iterrows()
+        ]
+    except Exception:
         return []
 
 # 뉴스 요약 데이터 (mock or 실제 RAG 대체 가능)
