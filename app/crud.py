@@ -55,20 +55,95 @@ def get_kospi_chart_data(ticker: str) -> List[Dict]:
     except Exception:
         return []
 
-# 뉴스 요약 데이터 (mock or 실제 RAG 대체 가능)
-def get_recent_news(ticker: str) -> List[Dict]:
-    return [
-        {
-            "title": f"{ticker} releases new product",
-            "summary": "애플이 새로운 제품을 출시했습니다.",
-            "sentiment": "positive"
-        },
-        {
-            "title": f"{ticker} faces supply chain issue",
-            "summary": "공급망 이슈로 인한 주가 변동 가능성 언급.",
-            "sentiment": "negative"
-        }
-    ]
+# 뉴스 요약 데이터
+def get_recent_news(ticker: str, market: str = "US") -> List[Dict]:
+    if market == "US":
+        return get_us_news(ticker)
+    elif market == "KOSPI":
+        return get_kospi_news(ticker)
+    else:
+        return []
+    
+# US 뉴스 요약 데이터
+def get_us_news(ticker: str) -> List[Dict]:
+    try:
+        ticker_data = yf.Ticker(ticker)
+        news = ticker_data.news
+        parsed_news = []
+
+        for article in news:
+            content = article.get('content', {})
+            title = content.get('title')
+            url_info = content.get('canonicalUrl', {})
+            link = url_info.get('url')
+            pubDate = content.get('pubDate', "")
+            provider_info = content.get('provider', {})
+            provider = provider_info.get('displayName', "")
+
+            if title and link:
+                parsed_news.append({
+                    "title": title,
+                    "summary": content.get('summary', ""),
+                    "link": link,
+                    "pubDate": pubDate,
+                    "provider": provider
+                })
+
+        return parsed_news[:10]
+
+    except Exception as e:
+        print(f"Error fetching US news for {ticker}: {e}")
+        return []
+
+"""
+# KOSPI 종목도 .KS 붙여서 시도 
+# TODO: 한국어 뉴스가 제공되지 않기에 RAG나 다른 방법 고려려
+"""
+def get_kospi_news(ticker: str) -> List[Dict]:
+    try:
+        ticker_with_ks = ticker + ".KS"
+        ticker_data = yf.Ticker(ticker_with_ks)
+        news = ticker_data.news
+        parsed_news = []
+
+        for article in news:
+            content = article.get('content', {})
+            title = content.get('title')
+            url_info = content.get('canonicalUrl', {})
+            link = url_info.get('url')
+            pubDate = content.get('pubDate', "")
+            provider_info = content.get('provider', {})
+            provider = provider_info.get('displayName', "")
+
+            if title and link:
+                parsed_news.append({
+                    "title": title,
+                    "summary": content.get('summary', ""),
+                    "link": link,
+                    "pubDate": pubDate,
+                    "provider": provider
+                })
+
+        if parsed_news:
+            return parsed_news[:10]
+        else:
+            return [{
+                "title": f"{ticker} 관련 뉴스 없음",
+                "summary": "",
+                "link": "",
+                "pubDate": "",
+                "provider": ""
+            }]
+
+    except Exception as e:
+        print(f"Error fetching KOSPI news for {ticker}: {e}")
+        return [{
+            "title": f"{ticker} 관련 뉴스 없음",
+            "summary": "",
+            "link": "",
+            "pubDate": "",
+            "provider": ""
+        }]
 
 # 예측 결과 생성 (향후 모델 연동)
 def run_prediction(ticker: str, horizon: int) -> Dict:

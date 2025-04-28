@@ -11,7 +11,9 @@ class ChartDataItem(BaseModel):
 class NewsItem(BaseModel):
     title: str
     summary: str
-    sentiment: str
+    link: str
+    pubDate: str    # 뉴스 발행 시간
+    provider: str   # 뉴스 제공자
 
 class PredictionData(BaseModel):
     horizon: int
