@@ -30,12 +30,11 @@ def get_stock_info(
     else:
         raise HTTPException(status_code=404, detail="해당 티커 정보를 찾을 수 없습니다.")
     
-    
     # 차트 데이터
     chart_data = get_chart_data(ticker, market)
 
-    # 뉴스 데이터 (Mock)
-    news_data = get_recent_news(ticker) if includeNews else []
+    # 뉴스 데이터
+    news_data = get_recent_news(ticker, market) if includeNews else []
 
     # 예측 결과 (Mock)
     prediction = run_prediction(ticker, horizon)
