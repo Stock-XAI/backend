@@ -23,12 +23,12 @@ def search_tickers(keyword: Optional[str] = Query(None, description="검색 키�
     """
     if keyword:
         regex = {"$regex": keyword, "$options": "i"}
-        results = db["tickers"].find(
+        results = db["tickers_us"].find(
             { "$or": [ { "ticker": regex }, { "name": regex } ] },
             { "_id": 0 }
         ).limit(10)
     else:
-        results = db["tickers"].find(
+        results = db["tickers_us"].find(
             { "ticker": { "$in": POPULAR_TICKERS } },
             { "_id": 0 }
         )

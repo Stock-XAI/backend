@@ -23,7 +23,7 @@ def get_stock_info(
     """
 
     # 유효한 티커인지 MongoDB에서 확인
-    if not db["tickers"].find_one({"ticker": ticker}):
+    if not db["tickers_us"].find_one({"ticker": ticker}):
         raise HTTPException(status_code=404, detail="해당 티커 정보를 찾을 수 없습니다.")
     
     # 차트 데이터

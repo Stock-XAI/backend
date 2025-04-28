@@ -20,7 +20,7 @@ def fix_ticker_format(ticker: str) -> str:
 
 def get_sp500_tickers():
     url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-    df = pd.read_html(url)[0]  # S&P 500 테이블블
+    df = pd.read_html(url)[0]  # S&P 500 테이블
     return df["Symbol"].tolist()
 
 def get_nasdaq_100_tickers():
