@@ -1,4 +1,4 @@
-# scripts/seed_sp500_tickers.py
+# scripts/seed_us_tickers.py
 import yfinance as yf
 import pandas as pd
 from pymongo import MongoClient
@@ -57,4 +57,4 @@ if __name__ == "__main__":
         insert_ticker(ticker, name)
         time.sleep(0.2)
 
-    print("티커 + 회사 이름 MongoDB 저장 완료")
+    print("S&P, nasdaq tickers inserted into MongoDB successfully!")
