@@ -1,4 +1,4 @@
-# scripts/seed_sp500_tickers.py
+# scripts/seed_us_tickers.py
 import yfinance as yf
 import pandas as pd
 from pymongo import MongoClient
@@ -13,14 +13,14 @@ if not db_password:
 
 MONGO_URI = f"mongodb+srv://skkucapstone:{db_password}@stock.iz5b97b.mongodb.net/?retryWrites=true&w=majority"
 client = MongoClient(MONGO_URI)
-collection = client["db"]["tickers"]
+collection = client["db"]["tickers_us"]
 
 def fix_ticker_format(ticker: str) -> str:
     return ticker.replace(".", "-")
 
 def get_sp500_tickers():
     url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-    df = pd.read_html(url)[0]  # S&P 500 테이블블
+    df = pd.read_html(url)[0]  # S&P 500 테이블
     return df["Symbol"].tolist()
 
 def get_nasdaq_100_tickers():
@@ -57,4 +57,4 @@ if __name__ == "__main__":
         insert_ticker(ticker, name)
         time.sleep(0.2)
 
-    print("티커 + 회사 이름 MongoDB 저장 완료")
+    print("S&P, nasdaq tickers inserted into MongoDB successfully!")

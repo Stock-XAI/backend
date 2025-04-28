@@ -14,7 +14,7 @@ POPULAR_TICKERS = [
 
 router = APIRouter()
 
-# GET /search?t=XXX
+# GET /search?keyword=XXX
 @router.get("/search")
 def search_tickers(keyword: Optional[str] = Query(None, description="검색 키워드 (none: all)")):
     """
@@ -23,13 +23,24 @@ def search_tickers(keyword: Optional[str] = Query(None, description="검색 키�
     """
     if keyword:
         regex = {"$regex": keyword, "$options": "i"}
-        results = db["tickers"].find(
+        
+        # 미국 주식 검색
+        us_results = list(db["tickers_us"].find(
             { "$or": [ { "ticker": regex }, { "name": regex } ] },
             { "_id": 0 }
-        ).limit(10)
+        ).limit(10))
+        
+        # 한국 주식 검색
+        kospi_results = list(db["tickers_kospi"].find(
+            { "$or": [ { "ticker": regex }, { "name": regex } ] },
+            { "_id": 0 }
+        ).limit(10))
+        
+        return us_results + kospi_results
+        
     else:
-        results = db["tickers"].find(
+        results = db["tickers_us"].find(
             { "ticker": { "$in": POPULAR_TICKERS } },
             { "_id": 0 }
         )
-    return list(results)
+        return list(results)
