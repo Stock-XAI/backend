@@ -146,12 +146,19 @@ def get_kospi_news(ticker: str) -> List[Dict]:
         }]
 
 # 예측 결과 생성 (향후 모델 연동)
-def run_prediction(ticker: str, horizon: int) -> Dict:
-    return {
-        "horizon": horizon,
-        "result": "Rise",  # or "Fall"
-        "confidenceScore": 0.86
-    }
+def run_prediction(ticker: str, horizon: int, market: str = "US") -> List[Dict]:
+    if market == "KOSPI":
+        return {
+            "horizon": horizon,
+            "result": "Strong fall",
+            "confidenceScore": 0.58
+        }
+    else:
+        return {
+            "horizon": horizon,
+            "result": "Rise",
+            "confidenceScore": 0.86
+        }
 
 # XAI 해석 결과 (SHAP, LIME 등 연동 예정)
 def generate_explanation(ticker: str, horizon: int) -> Dict:

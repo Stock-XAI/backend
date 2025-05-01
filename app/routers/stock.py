@@ -37,7 +37,7 @@ def get_stock_info(
     news_data = get_recent_news(ticker, market) if includeNews else []
 
     # 예측 결과 (Mock)
-    prediction = run_prediction(ticker, horizon)
+    prediction = run_prediction(ticker, horizon, market)
 
     # 예측 해석 (Mock)
     explanation = generate_explanation(ticker, horizon) if includeXAI else {}
