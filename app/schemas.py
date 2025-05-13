@@ -18,7 +18,7 @@ class NewsItem(BaseModel):
 class PredictionData(BaseModel):
     horizon: int
     result: str
-    confidenceScore: float
+    # confidenceScore: float
 
 class ExplanationData(BaseModel):
     why: str

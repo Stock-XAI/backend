@@ -145,12 +145,26 @@ def get_kospi_news(ticker: str) -> List[Dict]:
             "provider": ""
         }]
 
-# 예측 결과 생성 (향후 모델 연동)
+# 예측 결과 생성
+import os, requests
 def run_prediction(ticker: str, horizon: int) -> Dict:
+    api_url = os.getenv("NGROK_API_URL")
+    if not api_url:
+        return {"error": "NGROK_API_URL not set"}
+    
+    res = requests.get(
+        api_url,
+        params={"ticker": ticker, "horizon_days": horizon},
+        headers={"ngrok-skip-browser-warning": "true"}
+    )
+    
+    if res.status_code != 200:
+        return {"error": f"API error: {res.status_code}"}
+
+    data = res.json()
     return {
         "horizon": horizon,
-        "result": "Rise",  # or "Fall"
-        "confidenceScore": 0.86
+        "result": data.get("prediction_result", "N/A")
     }
 
 # XAI 해석 결과 (SHAP, LIME 등 연동 예정)
