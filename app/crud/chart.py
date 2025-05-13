@@ -169,8 +169,10 @@ def _fetch_kospi(ticker: str,
                  end: datetime.date, 
                  interval: int) -> List[Dict]:
     # 1) 일간 데이터 먼저 수집
-    df = fdr.DataReader(ticker, start=start - timedelta(days=interval*3),
-                        end=end + timedelta(days=1)).round(2)
+    df = fdr.DataReader(
+        ticker, 
+        start=start - timedelta(days=interval*3),
+        end=end + timedelta(days=1)).round(2)
     if df.empty:
         return []
 
