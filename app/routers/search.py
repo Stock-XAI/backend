@@ -1,7 +1,10 @@
 # app/routers/search.py
-from fastapi import APIRouter, Query
-from typing import Optional
-from ..database import db
+from fastapi import APIRouter, Query, Depends
+from sqlalchemy.orm import Session
+from typing import Optional, List
+from db.session import get_db
+from db.models.ticker import Ticker
+from sqlalchemy import or_
 
 # S&P 500 시가총액 상위 + 검색량 많은 종목 + 대표 섹터별 종목 조합 50개
 POPULAR_TICKERS = [
@@ -16,31 +19,29 @@ router = APIRouter()
 
 # GET /search?keyword=XXX
 @router.get("/search")
-def search_tickers(keyword: Optional[str] = Query(None, description="검색 키워드 (none: all)")):
+def search_tickers(
+    keyword: Optional[str] = Query(None, description="검색 키워드 (none: all)"),
+    db: Session = Depends(get_db)
+):
     """
     종목 코드(ticker) 또는 회사 이름(name)으로 자동완성 검색
     - Query param: keyword
     """
     if keyword:
-        regex = {"$regex": keyword, "$options": "i"}
-        
-        # 미국 주식 검색
-        us_results = list(db["tickers_us"].find(
-            { "$or": [ { "ticker": regex }, { "name": regex } ] },
-            { "_id": 0 }
-        ).limit(10))
-        
-        # 한국 주식 검색
-        kospi_results = list(db["tickers_kospi"].find(
-            { "$or": [ { "ticker": regex }, { "name": regex } ] },
-            { "_id": 0 }
-        ).limit(10))
-        
-        return us_results + kospi_results
-        
+        results = db.query(Ticker).filter(
+            or_(
+                Ticker.ticker_code.ilike(f"%{keyword}%"),
+                Ticker.company_name.ilike(f"%{keyword}%")
+            )
+        ).limit(10).all()
     else:
-        results = db["tickers_us"].find(
-            { "ticker": { "$in": POPULAR_TICKERS } },
-            { "_id": 0 }
-        )
-        return list(results)
+        results = db.query(Ticker).filter(Ticker.ticker_code.in_(POPULAR_TICKERS)).all()
+
+    return [
+        {
+            "ticker": t.ticker_code,
+            "name": t.company_name,
+            "market": t.market
+        }
+        for t in results
+    ]
