@@ -1,12 +1,7 @@
 # app/crud/chart.py
-"""Chart-data CRUD + caching logic.
-
-Key design points:
-Incremental fetch - DB에 없는 최신 구간만 외부 API로 가져와 cache.
-"""
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict
 
 import yfinance as yf
@@ -30,20 +25,17 @@ def _get_session(ext_session: Session | None):
             yield s
         finally:
             s.close()
-            
-# ──────────────────────────────────────────────────────────────────────────────
-# public api
-# ──────────────────────────────────────────────────────────────────────────────
 
 def get_chart_data(ticker_code: str,
                    *, 
                    interval: int = 1,
                    session: Session | None = None) -> List[Dict]:
-    """Return cached+fresh chart rows for ticker_code.
+    """
+    ticker_code에 대해 캐시된 최신 차트 행을 반환
 
-    If DB is missing rows after the latest cached date, we fetch only that gap
-    from the appropriate data source (yfinance for US / FDR for KOSPI) and then
-    persist them.  Supported interval days: 1, 7, 30.
+    DB에 캐시된 최신 날짜 이후 행이 누락된 경우, 해당 데이터 소스
+    (미국의 경우 yfinance, 코스피의 경우 FDR)에서 해당 간격만 가져온 후 유지 
+    (지원되는 간격 일: 1, 7, 30일)
     """
     if interval not in (1, 7, 30):
         raise ValueError("interval must be 1, 7 or 30")
@@ -65,7 +57,7 @@ def get_chart_data(ticker_code: str,
             ).scalar_one()
         )
 
-        today = datetime.today().date()
+        today = datetime.now(timezone.utc).date()
         expected_next_date = (
             latest + timedelta(days=interval) if latest else today - timedelta(days=interval * 30)
         )
@@ -106,10 +98,6 @@ def get_chart_data(ticker_code: str,
             .all()
         )
         return [_row_to_dict(r) for r in rows]
-
-# ──────────────────────────────────────────────────────────────────────────────
-# helpers
-# ──────────────────────────────────────────────────────────────────────────────
 
 def _row_to_dict(r: ChartData) -> Dict:
     return {
@@ -176,7 +164,7 @@ def _fetch_kospi(ticker: str,
     if df.empty:
         return []
 
-    # 2) 주간·월간이면 리샘플
+    # 2) 주간 및 월간이면 resampling
     if interval != 1:
         rule = {7: "W-MON", 30: "MS"}[interval]
         df = (
