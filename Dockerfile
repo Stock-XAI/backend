@@ -3,7 +3,7 @@
 # Run: docker run -d -p 8000:8000 --name stockinfo-app stockinfo:latest
 
 # 1. 베이스 이미지 선택
-FROM python:3.12-slim
+FROM python:3.12.0
 
 # 2. 작업 디렉토리 생성
 WORKDIR /app
@@ -13,7 +13,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 4. 소스 코드 복사
-COPY app/ app/
+COPY . .
 
 # 5. FastAPI + uvicorn 실행 명령
 EXPOSE 8000
