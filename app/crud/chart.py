@@ -2,11 +2,11 @@
 """Chart-data CRUD + caching logic.
 
 Key design points:
-Incremental fetch - DB에 없는 최신 구간만 외부 API로 가져와 cache.
+Incremental fetch - DB에 없는 최신 구간만 외부 API로 가져와 cache
 """
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict
 
 import yfinance as yf
@@ -65,7 +65,7 @@ def get_chart_data(ticker_code: str,
             ).scalar_one()
         )
 
-        today = datetime.today().date()
+        today = datetime.now(timezone.utc).date()
         expected_next_date = (
             latest + timedelta(days=interval) if latest else today - timedelta(days=interval * 30)
         )

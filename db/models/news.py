@@ -7,8 +7,8 @@ class News(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     ticker_id = Column(Integer, ForeignKey("ticker.id"), nullable=False)
-    title = Column(String(200), nullable=False)
+    title = Column(String(256), nullable=False)
     summary = Column(Text)
-    link = Column(String(200), nullable=False)
+    link = Column(String(512), nullable=False)
     pub_date = Column(DateTime, nullable=False)
-    provider = Column(String(50))
+    provider = Column(String(64))
