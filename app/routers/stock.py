@@ -1,8 +1,7 @@
 # app/routers/stock.py
 from fastapi import APIRouter, Query, HTTPException
-from ..crud import *
-from ..database import db
-from ..schemas import StockInfoResponse, StockInfoWrapper
+from app.crud import *
+from app.schemas import StockInfoResponse, StockInfoWrapper
 
 router = APIRouter()
 
@@ -22,19 +21,11 @@ def get_stock_info(
     - includeXAI: 예측 결과 해석 포함 여부
     """
 
-    # ticker가 미국 주식(tickers_us)인지, 한국 주식(tickers_kospi)인지 확인
-    if db["tickers_us"].find_one({"ticker": ticker}):
-        market = "US"
-    elif db["tickers_kospi"].find_one({"ticker": ticker}):
-        market = "KOSPI"
-    else:
-        raise HTTPException(status_code=404, detail="해당 티커 정보를 찾을 수 없습니다.")
-    
     # 차트 데이터
-    chart_data = get_chart_data(ticker, market)
+    chart_data = get_chart_data(ticker)
 
     # 뉴스 데이터
-    news_data = get_recent_news(ticker, market) if includeNews else []
+    news_data = get_recent_news(ticker) if includeNews else []
 
     # 예측 결과 (Mock)
     prediction = run_prediction(ticker, horizon)

@@ -1,19 +1,16 @@
-# scripts/seed_us_tickers.py
-import yfinance as yf
-import pandas as pd
-from pymongo import MongoClient
-from dotenv import load_dotenv
+# db/seeds/seed_us_tickers.py
 import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+
 import time
+import pandas as pd
+import yfinance as yf
+from sqlalchemy.orm import Session
 
-load_dotenv()
-db_password = os.getenv("DB_PASSWORD")
-if not db_password:
-    raise ValueError("DB_PASSWORD is not set in .env")
-
-MONGO_URI = f"mongodb+srv://skkucapstone:{db_password}@stock.iz5b97b.mongodb.net/?retryWrites=true&w=majority"
-client = MongoClient(MONGO_URI)
-collection = client["db"]["tickers_us"]
+from db.session import SessionLocal
+from db.models.ticker import Ticker
 
 def fix_ticker_format(ticker: str) -> str:
     return ticker.replace(".", "-")
@@ -34,27 +31,35 @@ def fetch_company_name(ticker: str) -> str:
         return info.get("longName") or info.get("shortName")
     except Exception:
         return None
-    
-def insert_ticker(ticker: str, name: str):
+
+def insert_ticker(db: Session, ticker: str, name: str):
     if not name:
         print(f"{ticker}: null")
         return
-    collection.update_one(
-        {"ticker": ticker},
-        {"$set": {"ticker": ticker, "name": name}},
-        upsert=True
-    )
+
+    existing = db.query(Ticker).filter(Ticker.ticker_code == ticker).first()
+    if existing:
+        existing.company_name = name
+    else:
+        db.add(Ticker(ticker_code=ticker, company_name=name, market="US"))
+    db.commit()
     print(f"{ticker}: {name}")
-    
-if __name__ == "__main__":
+
+def seed_us_tickers():
+    session = SessionLocal()
+
     sp500 = get_sp500_tickers()
     nasdaq = get_nasdaq_100_tickers()
     all_tickers = list(set(sp500 + nasdaq))
-    
+
     for raw in all_tickers:
         ticker = fix_ticker_format(raw)
         name = fetch_company_name(ticker)
-        insert_ticker(ticker, name)
+        insert_ticker(session, ticker, name)
         time.sleep(0.2)
 
-    print("S&P, nasdaq tickers inserted into MongoDB successfully!")
+    session.close()
+    print("US tickers inserted into MySQL successfully!")
+
+if __name__ == "__main__":
+    seed_us_tickers()

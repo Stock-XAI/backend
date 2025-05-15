@@ -1,3 +1,4 @@
+# app/schemas
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -18,7 +19,6 @@ class NewsItem(BaseModel):
 class PredictionData(BaseModel):
     horizon: int
     result: str
-    # confidenceScore: float
 
 class ExplanationData(BaseModel):
     why: str
