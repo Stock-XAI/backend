@@ -1,25 +1,10 @@
 # app/crud/explanation.py
-from typing import Dict, List, Optional
-from contextlib import contextmanager
+from typing import Dict
 from sqlalchemy.orm import Session
 
 from db.session import SessionLocal
 
-
-@contextmanager
-def _get_session(ext_session: Optional[Session] = None):
-    """
-    외부 세션 주입 또는 내부 세션 생성 후 close 처리
-    """
-    if ext_session:
-        yield ext_session
-    else:
-        session = SessionLocal()
-        try:
-            yield session
-        finally:
-            session.close()
-
+from app.crud.utils import get_session
 
 def generate_explanation(
     ticker_code: str,
@@ -40,7 +25,7 @@ def generate_explanation(
         }
     """
     # 필요 시 세션 주입
-    with _get_session(session) as db:
+    with get_session(session) as db:
         # TODO: SHAP 또는 LIME 기반 실제 설명 로직 구현
         pass
 

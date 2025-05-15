@@ -13,18 +13,7 @@ from db.session import SessionLocal
 from db.models.chart_data import ChartData
 from db.models.ticker import Ticker
 
-from contextlib import contextmanager
-
-@contextmanager
-def _get_session(ext_session: Session | None):
-    if ext_session is not None:
-        yield ext_session
-    else:
-        s = SessionLocal()
-        try:
-            yield s
-        finally:
-            s.close()
+from app.crud.utils import get_session
 
 def get_chart_data(ticker_code: str,
                    *, 
@@ -40,7 +29,7 @@ def get_chart_data(ticker_code: str,
     if interval not in (1, 7, 30):
         raise ValueError("interval must be 1, 7 or 30")
 
-    with _get_session(session) as db:
+    with get_session(session) as db:
         ticker: Ticker | None = (
             db.execute(select(Ticker).where(Ticker.ticker_code == ticker_code))
             .scalar_one_or_none()

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from typing import Dict, Optional, List
-from contextlib import contextmanager
 from datetime import date, timedelta
 
 import os
@@ -14,18 +13,7 @@ from db.session import SessionLocal
 from db.models.ticker import Ticker
 from db.models.prediction import Prediction
 
-
-@contextmanager
-def _get_session(ext_session: Optional[Session] = None):
-    if ext_session:
-        yield ext_session
-    else:
-        session = SessionLocal()
-        try:
-            yield session
-        finally:
-            session.close()
-
+from app.crud.utils import get_session
 
 def run_prediction(
     ticker_code: str,
@@ -43,7 +31,7 @@ def run_prediction(
             "result": str
         }
     """
-    with _get_session(session) as db:
+    with get_session(session) as db:
         # Ticker 검증
         ticker: Ticker | None = db.execute(
             select(Ticker).where(Ticker.ticker_code == ticker_code)
@@ -117,7 +105,7 @@ def get_predicted(
 
     반환 형식: List of {"horizon": int, "result": str}
     """
-    with _get_session(session) as db:
+    with get_session(session) as db:
         ticker: Ticker | None = db.execute(
             select(Ticker).where(Ticker.ticker_code == ticker_code)
         ).scalar_one_or_none()

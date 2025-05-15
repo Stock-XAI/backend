@@ -1,8 +1,7 @@
 # app/crud/news.py
 from __future__ import annotations
 
-from typing import List, Dict, Optional
-from contextlib import contextmanager
+from typing import List, Dict
 from datetime import datetime, timezone
 
 import yfinance as yf
@@ -14,18 +13,7 @@ from db.session import SessionLocal
 from db.models.news import News
 from db.models.ticker import Ticker
 
-
-@contextmanager
-def _get_session(ext_session: Optional[Session] = None):
-    if ext_session:
-        yield ext_session
-    else:
-        session = SessionLocal()
-        try:
-            yield session
-        finally:
-            session.close()
-
+from app.crud.utils import get_session
 
 def get_recent_news(
     ticker_code: str,
@@ -38,7 +26,7 @@ def get_recent_news(
     - Ticker.market 정보로 US/KOSPI 구분하여 YF fetch (.KS suffix)
     - 신규 항목만 insert 후 최신 10건 반환
     """
-    with _get_session(session) as db:
+    with get_session(session) as db:
         # 1) Ticker 조회
         ticker: Ticker | None = db.execute(
             select(Ticker).where(Ticker.ticker_code == ticker_code)
@@ -74,9 +62,7 @@ def get_recent_news(
                 max_pub_dt = dt
 
         # 캐시 히트: API의 최신 뉴스가 DB 최신과 같거나 이전이면 DB에서 바로 반환
-        print(max_pub_dt, latest_db_date)
         if max_pub_dt and latest_db_date and max_pub_dt <= latest_db_date:
-            print("cahce")    
             rows = db.execute(
                 select(News)
                 .where(News.ticker_id == ticker.id)
