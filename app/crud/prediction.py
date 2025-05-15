@@ -69,18 +69,23 @@ def run_prediction(
         if not api_url:
             return {"horizon": horizon, "result": ""}
 
+        # KOSPI 종목이면 .KS 붙여서 보냄
+        fetch_code = (
+            f"{ticker_code}.KS" if ticker.market.upper() == "KOSPI" else ticker_code
+        )
+        
         # 외부 API 호출
         try:
             resp = requests.get(
                 api_url,
-                params={"ticker": ticker_code, "horizon_days": horizon},
+                params={"ticker": fetch_code, "horizon_days": horizon},
                 headers={"ngrok-skip-browser-warning": "true"},
                 timeout=10
             )
             resp.raise_for_status()
             payload = resp.json()
         except Exception:
-            print("API 없는데요?")
+            print("API 안 띄웠는데요? 아니면 주소 잘못 됨")
             return {"horizon": horizon, "result": ""}
 
         result = payload.get("prediction_result", "")
