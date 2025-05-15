@@ -5,7 +5,7 @@ Table Ticker {
   id int [pk, increment]
   ticker_code varchar [unique, not null] // "AAPL", "005930.KS"
   company_name varchar
-  market varchar [not null]                       // "US", "KOSPI"
+  market varchar [not null]              // "US", "KOSPI"
 }
 
 Table ChartData {
