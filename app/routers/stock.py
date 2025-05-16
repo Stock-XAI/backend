@@ -20,6 +20,8 @@ def get_stock_info(
     - includeNews: 뉴스 요약 포함 여부
     - includeXAI: 예측 결과 해석 포함 여부
     """
+    if horizon not in (1, 7, 30):
+        raise ValueError("interval must be 1, 7 or 30")
 
     # 차트 데이터
     chart_data = get_chart_data(ticker, interval=horizon)

@@ -23,10 +23,7 @@ def get_chart_data(ticker_code: str,
 
     DB에 캐시된 최신 날짜 이후 행이 누락된 경우, 해당 데이터 소스
     (미국의 경우 yfinance, 코스피의 경우 FDR)에서 해당 간격만 가져온 후 유지 
-    (지원되는 간격 일: 1, 7, 30일)
     """
-    if interval not in (1, 7, 30):
-        raise ValueError("interval must be 1, 7 or 30")
 
     with get_session(session) as db:
         ticker: Ticker | None = (
