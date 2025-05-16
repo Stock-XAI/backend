@@ -24,7 +24,7 @@ def get_stock_info(
         raise ValueError("interval must be 1, 7 or 30")
 
     # 차트 데이터
-    chart_data = get_chart_data(ticker)
+    chart_data = get_chart_data(ticker, interval=horizon)
 
     # 뉴스 데이터
     news_data = get_recent_news(ticker) if includeNews else []

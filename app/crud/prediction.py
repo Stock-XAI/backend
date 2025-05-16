@@ -18,7 +18,6 @@ from app.crud.utils import get_session
 def run_prediction(
     ticker_code: str,
     horizon: int,
-    *,
     session: Session | None = None
 ) -> Dict[str, object]:
     """

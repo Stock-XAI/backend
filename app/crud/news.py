@@ -17,7 +17,6 @@ from app.crud.utils import get_session
 
 def get_recent_news(
     ticker_code: str,
-    *,
     session: Session | None = None
 ) -> List[Dict]:
     """
