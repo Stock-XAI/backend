@@ -16,7 +16,6 @@ from db.models.ticker import Ticker
 from app.crud.utils import get_session
 
 def get_chart_data(ticker_code: str,
-                   *, 
                    interval: int = 1,
                    session: Session | None = None) -> List[Dict]:
     """

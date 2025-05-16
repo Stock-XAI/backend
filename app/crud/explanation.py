@@ -9,7 +9,6 @@ from app.crud.utils import get_session
 def generate_explanation(
     ticker_code: str,
     horizon: int,
-    *,
     session: Session | None = None
 ) -> Dict[str, object]:
     """
