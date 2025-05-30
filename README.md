@@ -71,7 +71,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 ## 4. Docker Run (Docker Compose)
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 ## 5. Contributor
