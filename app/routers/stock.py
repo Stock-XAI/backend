@@ -10,8 +10,6 @@ router = APIRouter()
 def get_stock_info(
     ticker: str = Query(..., description="종목 코드 (예: AAPL, 005930)"),
     horizon: int = Query(7, description="예측 기간 (1, 7, 30일 등)"),
-    includeNews: bool = Query(True, description="뉴스 포함 여부"),
-    includeXAI: bool = Query(True, description="XAI 해석 포함 여부")
 ):
     """
     주가 예측 결과 및 해석 제공 API
@@ -27,13 +25,13 @@ def get_stock_info(
     chart_data = get_chart_data(ticker, interval=horizon)
 
     # 뉴스 데이터
-    news_data = get_recent_news(ticker) if includeNews else []
+    news_data = get_recent_news(ticker)
 
     # 예측 결과 (Mock)
     prediction = run_prediction(ticker, horizon)
 
     # 예측 해석 (Mock)
-    explanation = generate_explanation(ticker, horizon) if includeXAI else {}
+    explanation = generate_explaination(ticker, horizon)
 
     return StockInfoWrapper(
         success=True,

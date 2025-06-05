@@ -1,4 +1,4 @@
-# app/crud/prediction.py
+# app/crud/explanation.py
 from __future__ import annotations
 
 from typing import Dict, Optional, List
@@ -6,66 +6,68 @@ from datetime import date, timedelta
 
 import os
 import requests
+import json
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from db.session import SessionLocal
 from db.models.ticker import Ticker
-from db.models.prediction import Prediction
-
+from db.models.explaination import Explaination
 from app.crud.utils import get_session
 
-def run_prediction(
+def generate_explaination(
     ticker_code: str,
     horizon: int,
     session: Session | None = None
 ) -> Dict[str, object]:
     """
-    ticker_code와 horizon_days를 받아 예측 결과를 반환합니다.
-    기존 캐시가 있으면 DB에서 가져오고, 없으면 외부 API 호출 후 DB에 저장 후 반환합니다.
-
-    반환 형식:
+    ticker_code와 horizon_days를 받아 XAI 토큰 중요도 결과를 반환.
+    기존 캐시가 있으면 DB에서, 없으면 외부 API에서 받아서 저장.
+    반환:
         {
             "predicted_date": str,
-            "result": float
+            "tokens": List[str],
+            "token_scores": List[float]
         }
     """
     with get_session(session) as db:
         pred_date = date.today() + timedelta(days=horizon)
-        
+
         # Ticker 검증
         ticker: Ticker | None = db.execute(
             select(Ticker).where(Ticker.ticker_code == ticker_code)
         ).scalar_one_or_none()
         if not ticker:
-            return {"predicted_date": pred_date.isoformat(), "result": 0.0}
+            return {"predicted_date": pred_date, "tokens": [], "token_scores": []}
 
         # 캐시 조회
-        existing: Prediction | None = db.execute(
-            select(Prediction)
+        existing: Explaination | None = db.execute(
+            select(Explaination)
             .where(
-                Prediction.ticker_id == ticker.id,
-                Prediction.horizon_days == horizon,
-                Prediction.predicted_date == pred_date
+                Explaination.ticker_id == ticker.id,
+                Explaination.horizon_days == horizon,
+                Explaination.predicted_date == pred_date
             )
         ).scalar_one_or_none()
         if existing:
-            return {"predicted_date": pred_date.isoformat(), "result": existing.prediction_result}
+            return {
+                "predicted_date": pred_date,
+                "tokens": existing.get_token(),
+                "token_scores": existing.get_token_score()
+            }
 
-        # API URL 확인
-        api_url = os.getenv("NGROK_API_URL") + "predict"
+        # API URL 확인 (XAI API)
+        api_url = os.getenv("NGROK_API_URL") + "explain"
         if not api_url:
-            return {"predicted_date": pred_date.isoformat(), "result": 0.0}
+            return {"predicted_date": pred_date, "tokens": [], "token_scores": []}
 
         # KOSPI 종목이면 .KS 붙여서 보냄
         fetch_code = (
             f"{ticker_code}.KS" if ticker.market.upper() == "KOSPI" else ticker_code
         )
-        
+
         # 외부 API 호출
         try:
-            print(api_url)
-            print(fetch_code)
             resp = requests.get(
                 api_url,
                 params={"ticker": fetch_code, "horizon_days": horizon},
@@ -76,21 +78,24 @@ def run_prediction(
             payload = resp.json()
         except Exception as e:
             print("XAI API 안 띄웠거나 주소 잘못됨:", e)
-            return {"predicted_date": pred_date.isoformat(), "result": 0.0}
+            return {"predicted_date": pred_date, "tokens": [], "token_scores": []}
 
-        result = payload.get("prediction_result", "")
+        tokens = payload.get("token_list", [])
+        token_scores = payload.get("token_score_list", [])
 
-        # DB에 저장
-        pred = Prediction(
+        # DB에 저장 (직렬화)
+        explain = Explaination(
             ticker_id=ticker.id,
             predicted_date=pred_date,
             horizon_days=horizon,
-            prediction_result=result
         )
-        db.add(pred)
+        explain.set_token(tokens)
+        explain.set_token_score(token_scores)
+        db.add(explain)
         db.commit()
 
         return {
-            "predicted_date": pred_date.isoformat(), 
-            "result": result
+            "predicted_date": pred_date,
+            "tokens": tokens,
+            "token_scores": token_scores
         }
