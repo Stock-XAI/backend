@@ -17,20 +17,19 @@ class NewsItem(BaseModel):
     provider: str   # 뉴스 제공자
 
 class PredictionData(BaseModel):
-    horizon: int
-    result: str
+    predicted_date: str
+    result: float
 
 class ExplanationData(BaseModel):
-    why: str
-    shapValues: List[float]
-    features: List[str]
+    tokens: List[str]
+    token_scores: List[float]
 
 class StockInfoResponse(BaseModel):
     ticker: str
     chartData: List[ChartDataItem]
     news: List[NewsItem]
     prediction: PredictionData
-    explanation: Optional[ExplanationData]
+    explanation: ExplanationData
 
 class StockInfoWrapper(BaseModel):
     success: bool
