@@ -72,16 +72,18 @@ def get_chart_data(ticker_code: str,
                 )
             db.commit()
 
-        # return last 30 records (or all)
+        # return last 30 records
         rows = (
             db.execute(
                 select(ChartData)
                 .where(and_(ChartData.ticker_id == ticker.id, ChartData.interval == interval))
-                .order_by(ChartData.date)
+                .order_by(ChartData.date.desc())
+                .limit(30)
             )
             .scalars()
             .all()
         )
+        rows = list(reversed(rows))
         return [_row_to_dict(r) for r in rows]
 
 def _row_to_dict(r: ChartData) -> Dict:
