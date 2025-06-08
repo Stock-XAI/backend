@@ -24,14 +24,15 @@ class ExplanationData(BaseModel):
     tokens: List[str]
     token_scores: List[float]
 
-class StockInfoResponse(BaseModel):
+class ChartAndNewsResponse(BaseModel):
     ticker: str
     chartData: List[ChartDataItem]
     news: List[NewsItem]
+    
+class PredictionResponse(BaseModel):
+    ticker: str
     prediction: PredictionData
-    explanation: ExplanationData
 
-class StockInfoWrapper(BaseModel):
-    success: bool
-    message: str
-    data: StockInfoResponse
+class ExplanationResponse(BaseModel):
+    ticker: str
+    explaination: ExplanationData

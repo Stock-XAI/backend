@@ -12,10 +12,10 @@ from sqlalchemy.orm import Session
 
 from db.session import SessionLocal
 from db.models.ticker import Ticker
-from db.models.explaination import Explaination
+from db.models.explanation import Explanation
 from app.crud.utils import get_session
 
-def generate_explaination(
+def generate_explanation(
     ticker_code: str,
     horizon: int,
     session: Session | None = None
@@ -41,12 +41,12 @@ def generate_explaination(
             return {"predicted_date": pred_date, "tokens": [], "token_scores": []}
 
         # 캐시 조회
-        existing: Explaination | None = db.execute(
-            select(Explaination)
+        existing: Explanation | None = db.execute(
+            select(Explanation)
             .where(
-                Explaination.ticker_id == ticker.id,
-                Explaination.horizon_days == horizon,
-                Explaination.predicted_date == pred_date
+                Explanation.ticker_id == ticker.id,
+                Explanation.horizon_days == horizon,
+                Explanation.predicted_date == pred_date
             )
         ).scalar_one_or_none()
         if existing:
@@ -84,7 +84,7 @@ def generate_explaination(
         token_scores = payload.get("token_score_list", [])
 
         # DB에 저장 (직렬화)
-        explain = Explaination(
+        explain = Explanation(
             ticker_id=ticker.id,
             predicted_date=pred_date,
             horizon_days=horizon,

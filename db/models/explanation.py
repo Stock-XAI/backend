@@ -3,8 +3,8 @@ from sqlalchemy import Column, Integer, String, Date, ForeignKey, Float, Text
 import json
 from ..session import Base
 
-class Explaination(Base):
-    __tablename__ = "explaination"
+class Explanation(Base):
+    __tablename__ = "explanation"
 
     id = Column(Integer, primary_key=True, index=True)
     ticker_id = Column(Integer, ForeignKey("ticker.id"), nullable=False)
