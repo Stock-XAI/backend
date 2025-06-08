@@ -51,5 +51,5 @@ def get_explanation(
 
     return ExplanationResponse(
         ticker=ticker,
-        explaination=explanation
+        explanation=explanation
     )

@@ -35,4 +35,4 @@ class PredictionResponse(BaseModel):
 
 class ExplanationResponse(BaseModel):
     ticker: str
-    explaination: ExplanationData
+    explanation: ExplanationData
