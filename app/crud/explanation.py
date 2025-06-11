@@ -9,6 +9,7 @@ import requests
 import json
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from db.session import SessionLocal
 from db.models.ticker import Ticker
@@ -72,27 +73,49 @@ def generate_explanation(
                 api_url,
                 params={"ticker": fetch_code, "horizon_days": horizon},
                 headers={"ngrok-skip-browser-warning": "true"},
-                timeout=30
+                timeout=60
             )
             resp.raise_for_status()
             payload = resp.json()
         except Exception as e:
-            print("XAI API 안 띄웠거나 주소 잘못됨:", e)
+            print("XAI API error:", e)
             return {"predicted_date": pred_date, "tokens": [], "token_scores": []}
 
         tokens = payload.get("token_list", [])
         token_scores = payload.get("token_score_list", [])
 
-        # DB에 저장 (직렬화)
-        explain = Explanation(
-            ticker_id=ticker.id,
-            predicted_date=pred_date,
-            horizon_days=horizon,
-        )
-        explain.set_token(tokens)
-        explain.set_token_score(token_scores)
-        db.add(explain)
-        db.commit()
+        # Attempt to insert into DB
+        try:
+            explain = Explanation(
+                ticker_id=ticker.id,
+                predicted_date=pred_date,
+                horizon_days=horizon,
+            )
+            explain.set_token(tokens)
+            explain.set_token_score(token_scores)
+            db.add(explain)
+            db.commit()
+        except IntegrityError:
+            # Race condition: another process inserted same record
+            db.rollback()
+            
+            existing = db.execute(
+                select(Explanation).where(
+                    Explanation.ticker_id == ticker.id,
+                    Explanation.horizon_days == horizon,
+                    Explanation.predicted_date == pred_date
+                )
+            ).scalar_one_or_none()
+
+            if existing:
+                return {
+                    "predicted_date": pred_date,
+                    "tokens": existing.get_token(),
+                    "token_scores": existing.get_token_score()
+                }
+
+            # Fallback if still not found
+            return {"predicted_date": pred_date, "tokens": [], "token_scores": []}
 
         return {
             "predicted_date": pred_date,

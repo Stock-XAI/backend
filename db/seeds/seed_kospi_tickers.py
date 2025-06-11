@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from db.session import SessionLocal
 from db.models.ticker import Ticker
 
-def get_kospi_tickers(limit=50):
+def get_kospi_tickers(limit=100):
     kospi = fdr.StockListing('KOSPI')
     top = kospi.sort_values(by='Marcap', ascending=False).head(limit)
     return top[['Code', 'Name']].reset_index(drop=True)

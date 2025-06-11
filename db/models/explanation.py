@@ -1,5 +1,5 @@
 # db/models/explaination.py
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Float, Text
+from sqlalchemy import Column, Integer, Date, ForeignKey, Text, UniqueConstraint
 import json
 from ..session import Base
 
@@ -10,8 +10,12 @@ class Explanation(Base):
     ticker_id = Column(Integer, ForeignKey("ticker.id"), nullable=False)
     predicted_date = Column(Date, nullable=False)
     horizon_days = Column(Integer, nullable=False)
-    token = Column(Text)       # JSON 직렬화된 string
-    token_score = Column(Text) # JSON 직렬화된 string
+    token = Column(Text)
+    token_score = Column(Text)
+
+    __table_args__ = (
+        UniqueConstraint("ticker_id", "predicted_date", "horizon_days", name="uq_explanation_main"),
+    )
 
     def set_token(self, token_list):
         self.token = json.dumps(token_list)

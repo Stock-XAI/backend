@@ -8,6 +8,7 @@ import os
 import requests
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from db.session import SessionLocal
 from db.models.ticker import Ticker
@@ -70,7 +71,7 @@ def run_prediction(
                 api_url,
                 params={"ticker": fetch_code, "horizon_days": horizon},
                 headers={"ngrok-skip-browser-warning": "true"},
-                timeout=30
+                timeout=60
             )
             resp.raise_for_status()
             payload = resp.json()
@@ -78,19 +79,34 @@ def run_prediction(
             print("XAI API 안 띄웠거나 주소 잘못됨:", e)
             return {"predicted_date": pred_date.isoformat(), "result": 0.0}
 
-        result = payload.get("prediction_result", "")
+        result = payload.get("prediction_result", 0.0)
 
-        # DB에 저장
-        pred = Prediction(
-            ticker_id=ticker.id,
-            predicted_date=pred_date,
-            horizon_days=horizon,
-            prediction_result=result
-        )
-        db.add(pred)
-        db.commit()
+        # Insert into DB with exception safety
+        try:
+            pred = Prediction(
+                ticker_id=ticker.id,
+                predicted_date=pred_date,
+                horizon_days=horizon,
+                prediction_result=result
+            )
+            db.add(pred)
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            existing = db.execute(
+                select(Prediction)
+                .where(
+                    Prediction.ticker_id == ticker.id,
+                    Prediction.horizon_days == horizon,
+                    Prediction.predicted_date == pred_date
+                )
+            ).scalar_one_or_none()
+
+            if existing:
+                return {"predicted_date": pred_date.isoformat(), "result": existing.prediction_result}
+            return {"predicted_date": pred_date.isoformat(), "result": 0.0}
 
         return {
-            "predicted_date": pred_date.isoformat(), 
+            "predicted_date": pred_date.isoformat(),
             "result": result
         }
