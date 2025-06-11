@@ -57,8 +57,11 @@ def generate_explanation(
                 "token_scores": existing.get_token_score()
             }
 
-        # API URL 확인 (XAI API)
-        api_url = os.getenv("NGROK_API_URL") + "explain"
+        # Build API URL
+        base_url = os.getenv("NGROK_API_URL", "")
+        if not base_url.endswith("/"):
+            base_url += "/"
+        api_url = base_url + "explain"
         if not api_url:
             return {"predicted_date": pred_date, "tokens": [], "token_scores": []}
 

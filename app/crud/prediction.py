@@ -53,8 +53,12 @@ def run_prediction(
         if existing:
             return {"predicted_date": pred_date.isoformat(), "result": existing.prediction_result}
 
-        # API URL 확인
-        api_url = os.getenv("NGROK_API_URL") + "predict"
+        # Build API URL
+        base_url = os.getenv("NGROK_API_URL", "")
+        if not base_url.endswith("/"):
+            base_url += "/"
+        api_url = base_url + "predict"
+        
         if not api_url:
             return {"predicted_date": pred_date.isoformat(), "result": 0.0}
 
