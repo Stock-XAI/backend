@@ -43,7 +43,7 @@ def insert_ticker(db: Session, ticker: str, name: str):
     else:
         db.add(Ticker(ticker_code=ticker, company_name=name, market="US"))
     db.commit()
-    print(f"{ticker}: {name}")
+    # print(f"{ticker}: {name}")
 
 def seed_us_tickers():
     session = SessionLocal()
@@ -56,7 +56,7 @@ def seed_us_tickers():
         ticker = fix_ticker_format(raw)
         name = fetch_company_name(ticker)
         insert_ticker(session, ticker, name)
-        time.sleep(0.2)
+        time.sleep(0.05)
 
     session.close()
     print("US tickers inserted into MySQL successfully!")
