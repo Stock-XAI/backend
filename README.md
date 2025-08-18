@@ -141,11 +141,12 @@ DATABASE_URL="mysql+pymysql://<username>:<password>@<host>:<port>/<database>"
 <table>
   <tr>
     <td align="center">
-      <a href="https://github.com/JihunSKKU">
-        <img src="https://github.com/JihunSKKU.png" width="60px;" alt="JihunSKKU"/>
+      <a href="https://github.com/DevJihun">
+        <img src="https://github.com/DevJihun.png" width="60px;" alt="DevJihun"/>
         <br />
         <sub><b>Jihun Kim</b></sub>
       </a>
     </td>
   </tr>
 </table>
+
